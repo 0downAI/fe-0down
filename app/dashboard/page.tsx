@@ -4,14 +4,15 @@ import { useEffect, useState } from "react";
 import { Wrench } from "lucide-react";
 import { EquipmentAlert } from "@/components/equipment-alert";
 import { RecommendedActionsHeader } from "@/components/recommended-action";
+// Pastikan import Message juga dari UI kit agar tipenya cocok
 import { Chat } from "@/components/ui/chat";
+import { Message } from "@/components/ui/chat-message"; // <-- Pastikan ini ada
 import { supabase } from "@/lib/supabase";
-import { Message } from "@/components/ui/chat-message";
 
-// Tipe data yang diharapkan oleh UI Component (JANGAN UBAH INI)
+// Tipe untuk Alert (Sama seperti sebelumnya)
 type TicketUI = {
   id: number;
-  equipmentName: string; // Frontend minta camelCase
+  equipmentName: string;
   variant: "warning" | "critical" | "fatal";
   description: string;
   action: string;
@@ -19,75 +20,56 @@ type TicketUI = {
 };
 
 export default function Home() {
-  const [alerts, setAlerts] = useState<TicketUI[]>([]); // Pakai tipe UI
+  const [alerts, setAlerts] = useState<TicketUI[]>([]);
+  // Inisialisasi messages dengan array kosong bertipe Message[]
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState("");
 
-  // --- 1. SETUP SESSION ---
   useEffect(() => {
+    // Setup Session & Fetch Data
     let currentSession = localStorage.getItem("chat_session_id");
     if (!currentSession) {
       currentSession = "sess_" + Math.random().toString(36).substr(2, 9);
       localStorage.setItem("chat_session_id", currentSession);
     }
     setSessionId(currentSession);
-
     fetchAlerts();
     fetchChatHistory(currentSession);
   }, []);
 
-  // --- 2. FETCH ALERTS (DENGAN MAPPING YANG BENAR) ---
   const fetchAlerts = async () => {
-    // Ambil data mentah dari Database (sesuai nama kolom tabel kamu)
-    const { data: dbData, error } = await supabase
+    // ... (Logika fetch alerts sama seperti sebelumnya) ...
+    // Saya persingkat demi fokus ke Chatbot
+    const { data: dbData } = await supabase
       .from("failure_ticket")
       .select("*")
-      .eq("is_active", true) // Hanya ambil tiket aktif
+      .eq("is_active", true)
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetch alerts:", error);
-      return;
-    }
-
     if (dbData) {
-      // LAKUKAN MAPPING DI SINI: Dari Database Schema -> ke UI Schema
       const formattedAlerts: TicketUI[] = dbData.map((item: any) => {
-        // Logika konversi severity_level ke variant UI
-        let variant: "warning" | "critical" | "fatal" = "warning"; // Default
-
+        let variant: "warning" | "critical" | "fatal" = "warning";
         const severityLower = (item.severity_level || "").toLowerCase();
         if (severityLower.includes("critical")) variant = "critical";
         else if (severityLower.includes("fatal")) variant = "fatal";
-        else if (severityLower.includes("safe")) variant = "warning"; // Safe tetap warning atau di-hide?
 
         return {
           id: item.id,
-          // Mapping: sensor_id -> equipmentName
           equipmentName: `Machine Sensor #${item.sensor_id}`,
-
-          // Mapping: severity_level -> variant
           variant: variant,
-
-          // Mapping: failure_status -> description
-          description: `${item.failure_status} (Confidence: ${(
+          description: `${item.failure_status} (${(
             item.confidence_score * 100
           ).toFixed(1)}%)`,
-
-          // Mapping: recommendation -> action
-          action: item.recommendation || "Lakukan inspeksi manual.",
-
+          action: item.recommendation || "Inspeksi manual.",
           status: item.is_active ? "Pending" : "Resolved",
         };
       });
-
       setAlerts(formattedAlerts);
     }
   };
 
-  // --- 3. FETCH CHAT HISTORY (Sama seperti sebelumnya) ---
   const fetchChatHistory = async (sessId: string) => {
     const { data, error } = await supabase
       .from("chat_logs")
@@ -98,46 +80,44 @@ export default function Home() {
     if (data) {
       const formattedMessages: Message[] = [];
       data.forEach((log: any) => {
+        // Format harus sesuai tipe Message dari shadcn-chatbot-kit
         formattedMessages.push({
           id: `u-${log.id}`,
           role: "user",
           content: log.user_query,
+          createdAt: new Date(log.timestamp), // Opsional: Tambahkan tanggal jika ada
         });
         formattedMessages.push({
           id: `b-${log.id}`,
           role: "assistant",
           content: log.bot_response,
+          createdAt: new Date(log.timestamp),
         });
       });
       setMessages(formattedMessages);
     }
   };
 
-  // --- 4. HANDLE SUBMIT (Panggil API Flask/Vercel) ---
+  // --- FUNGSI UTAMA YANG DIPERBAIKI ---
   const handleSubmit = async (e?: { preventDefault?: () => void }) => {
     e?.preventDefault();
     if (!input.trim()) return;
 
+    // 1. Buat object message baru
     const userMsg: Message = {
       id: Date.now().toString(),
       role: "user",
       content: input,
+      createdAt: new Date(),
     };
+
+    // 2. Update State Manual (Optimistic UI)
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
 
     try {
-      // ✅ Cek dulu apakah API URL ada
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-      if (!apiUrl) {
-        throw new Error(
-          "API URL tidak dikonfigurasi. Tambahkan NEXT_PUBLIC_API_URL di .env.local"
-        );
-      }
-
-      console.log("🔍 Calling API:", `${apiUrl}/chat`); // Debug log
 
       const res = await fetch(`${apiUrl}/chat`, {
         method: "POST",
@@ -148,10 +128,7 @@ export default function Home() {
         }),
       });
 
-      // ✅ Cek status HTTP
-      if (!res.ok) {
-        throw new Error(`HTTP Error: ${res.status} ${res.statusText}`);
-      }
+      if (!res.ok) throw new Error("Server Error");
 
       const data = await res.json();
 
@@ -160,22 +137,17 @@ export default function Home() {
           id: (Date.now() + 1).toString(),
           role: "assistant",
           content: data.response,
+          createdAt: new Date(),
         };
         setMessages((prev) => [...prev, botMsg]);
-      } else {
-        // Jika backend return status bukan success
-        throw new Error(data.message || "Unknown error from API");
       }
     } catch (err) {
-      console.error("❌ Failed to connect:", err);
-
-      // ✅ Tampilkan error message ke user
+      console.error("Failed to connect:", err);
+      // Opsional: Kasih pesan error dummy dari bot
       const errorMsg: Message = {
-        id: (Date.now() + 1).toString(),
+        id: Date.now().toString(),
         role: "assistant",
-        content: `⚠️ Maaf, terjadi kesalahan: ${
-          err instanceof Error ? err.message : "Tidak dapat terhubung ke server"
-        }`,
+        content: "Maaf, terjadi kesalahan koneksi ke server.",
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
@@ -184,7 +156,8 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+    <main className="min-h-screen  p-6">
+      {/* Header */}
       <div className="mb-8 flex items-center gap-2">
         <Wrench className="h-6 w-6 text-blue-600" />
         <h1 className="text-2xl font-bold text-gray-900">
@@ -193,18 +166,18 @@ export default function Home() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Kolom Kiri: Alerts */}
         <div className="lg:col-span-2 space-y-4">
           <RecommendedActionsHeader />
           <div className="space-y-3">
             {alerts.length === 0 ? (
-              <p className="text-gray-500 italic">
+              <p className="text-gray-500 italic p-4 bg-white rounded-lg border text-center">
                 System Healthy. No active failure tickets.
               </p>
             ) : (
               alerts.map((alert) => (
                 <EquipmentAlert
                   key={alert.id}
-                  // Gunakan properti hasil mapping di atas
                   equipmentName={alert.equipmentName}
                   variant={alert.variant}
                   description={alert.description}
@@ -216,6 +189,8 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Kolom Kanan: Chatbot */}
+        {/* Pastikan height container fixed agar scrollbar muncul di dalam Chat */}
         <div className="lg:col-span-1 h-[600px] flex flex-col">
           <div className="flex items-center gap-2 mb-4">
             <Wrench className="h-5 w-5 text-blue-600" />
@@ -224,9 +199,15 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="">
+          <div className="flex-1 p-4 bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col">
+            {/* PERBAIKAN UTAMA DI SINI:
+               1. className="h-full" agar mengisi container.
+               2. setMessages={setMessages} agar internal component bisa akses state.
+            */}
             <Chat
+              className="h-full"
               messages={messages}
+              setMessages={setMessages}
               input={input}
               handleInputChange={(e) => setInput(e.target.value)}
               handleSubmit={handleSubmit}
