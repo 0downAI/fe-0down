@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Wrench } from "lucide-react";
 import { EquipmentAlert } from "@/components/equipment-alert";
 import { RecommendedActionsHeader } from "@/components/recommended-action";
-// Pastikan import Message juga dari UI kit agar tipenya cocok
+import { TextLoop } from "@/components/ui/text-loop";
 import { Chat } from "@/components/ui/chat";
 import { Message } from "@/components/ui/chat-message"; // <-- Pastikan ini ada
 import { supabase } from "@/lib/supabase";
+import Header from "@/components/header";
+import { Wrench } from "lucide-react";
 
 // Tipe untuk Alert (Sama seperti sebelumnya)
 type TicketUI = {
@@ -158,12 +159,7 @@ export default function Home() {
   return (
     <main className="min-h-screen  p-6">
       {/* Header */}
-      <div className="mb-8 flex items-center gap-2">
-        <Wrench className="h-6 w-6 text-blue-600" />
-        <h1 className="text-2xl font-bold text-gray-900">
-          Predictive Maintenance Copilot
-        </h1>
-      </div>
+      <Header />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Kolom Kiri: Alerts */}
@@ -190,20 +186,29 @@ export default function Home() {
         </div>
 
         {/* Kolom Kanan: Chatbot */}
-        {/* Pastikan height container fixed agar scrollbar muncul di dalam Chat */}
         <div className="lg:col-span-1 h-[600px] flex flex-col">
           <div className="flex items-center gap-2 mb-4">
-            <Wrench className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">
-              Maintenance Assistant
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <span>Ask Copilot</span>
+              <span className="text-gray-300 font-light">|</span>
+
+              {/* Ini TextLoop-nya */}
+              <TextLoop className="text-sm font-normal text-gray-500">
+                {[
+                  "Ready to assist",
+                  "Monitoring Sensors",
+                  "Checking Anomalies",
+                  "Awaiting Command",
+                ].map((text) => (
+                  <span key={text} className="block">
+                    {text}
+                  </span>
+                ))}
+              </TextLoop>
             </h2>
           </div>
 
           <div className="flex-1 p-4 bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col">
-            {/* PERBAIKAN UTAMA DI SINI:
-               1. className="h-full" agar mengisi container.
-               2. setMessages={setMessages} agar internal component bisa akses state.
-            */}
             <Chat
               className="h-full"
               messages={messages}
