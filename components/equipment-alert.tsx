@@ -54,7 +54,6 @@ export function EquipmentAlert({
   return (
     <Card className={`border p-5 ${styles.card}`}>
       <div className="space-y-3">
-        {/* Header with icon, title, and badges */}
         <div className="flex flex-wrap items-center gap-2">
           <IconComponent className={`h-5 w-5 flex-shrink-0 ${styles.icon}`} />
           <h3 className="font-semibold text-gray-900">{equipmentName}</h3>
@@ -63,10 +62,8 @@ export function EquipmentAlert({
           </Badge>
         </div>
 
-        {/* Description */}
         <p className={`text-sm ${styles.descriptionText}`}>{description}</p>
 
-        {/* Action section */}
         <div className={`rounded border ${styles.actionBox} p-4`}>
           <p className={`text-sm ${styles.actionText}`}>
             <span className="font-semibold">Action:</span> {action}
