@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { TextLoop } from "@/components/ui/text-loop";
 import { Chat } from "@/components/ui/chat";
 import { Message } from "@/components/ui/chat-message";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase";
 import api from "@/lib/api";
 
 export function CopilotChat() {
@@ -24,6 +24,7 @@ export function CopilotChat() {
     }, []);
 
     const fetchChatHistory = async (sessId: string) => {
+        const supabase = createClient();
         const { data } = await supabase
             .from("chat_logs")
             .select("*")
@@ -51,7 +52,7 @@ export function CopilotChat() {
     };
 
     const handleSubmit = async (e?: { preventDefault?: () => void }) => {
-        e?.preventDefault();
+        e?.preventDefault?.();
         if (!input.trim()) return;
 
         const userMsg: Message = {

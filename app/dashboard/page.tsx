@@ -6,7 +6,7 @@ import { RecommendedActionsHeader } from "@/components/recommended-action";
 import { TextLoop } from "@/components/ui/text-loop";
 import { Chat } from "@/components/ui/chat";
 import { Message } from "@/components/ui/chat-message";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase";
 import Header from "@/components/header";
 import {
   Pagination,
@@ -65,6 +65,7 @@ export default function Home() {
 
   const fetchAlerts = async () => {
     setIsLoadingAlerts(true);
+    const supabase = createClient();
     const { data: dbData } = await supabase
       .from("failure_ticket")
       .select("*")
@@ -95,6 +96,7 @@ export default function Home() {
   };
 
   const fetchChatHistory = async (sessId: string) => {
+    const supabase = createClient();
     const { data } = await supabase
       .from("chat_logs")
       .select("*")
@@ -178,7 +180,10 @@ export default function Home() {
             {isLoadingAlerts ? (
               // Tampilan Loading (Skeleton)
               Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
-                <div key={index} className="p-4 bg-white rounded-lg border flex flex-col gap-2 shadow-sm">
+                <div
+                  key={index}
+                  className="p-4 bg-white rounded-lg border flex flex-col gap-2 shadow-sm"
+                >
                   <div className="flex items-center justify-between">
                     <Skeleton className="h-6 w-1/3" />
                     <Skeleton className="h-6 w-20" />
@@ -218,11 +223,18 @@ export default function Home() {
                               e.preventDefault();
                               handlePageChange(currentPage - 1);
                             }}
-                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            className={
+                              currentPage === 1
+                                ? "pointer-events-none opacity-50"
+                                : "cursor-pointer"
+                            }
                           />
                         </PaginationItem>
 
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        {Array.from(
+                          { length: totalPages },
+                          (_, i) => i + 1
+                        ).map((page) => (
                           <PaginationItem key={page}>
                             <PaginationLink
                               href="#"
@@ -244,7 +256,11 @@ export default function Home() {
                               e.preventDefault();
                               handlePageChange(currentPage + 1);
                             }}
-                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            className={
+                              currentPage === totalPages
+                                ? "pointer-events-none opacity-50"
+                                : "cursor-pointer"
+                            }
                           />
                         </PaginationItem>
                       </PaginationContent>

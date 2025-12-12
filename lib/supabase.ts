@@ -1,7 +1,12 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from '@supabase/ssr'
 
-// Pakai NEXT_PUBLIC_ agar bisa dibaca browser
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_KEY!;
+export const createClient = () => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.NEXT_PUBLIC_SUPABASE_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    if (!url || !key) {
+        console.error("Supabase credentials missing! Check .env file.")
+    }
+
+    return createBrowserClient(url!, key!)
+}

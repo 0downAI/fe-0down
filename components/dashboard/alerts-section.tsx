@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { EquipmentAlert } from "@/components/equipment-alert";
 import { RecommendedActionsHeader } from "@/components/recommended-action";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase";
 import {
     Pagination,
     PaginationContent,
@@ -45,6 +45,7 @@ export function AlertsSection() {
 
     const fetchAlerts = async () => {
         setIsLoadingAlerts(true);
+        const supabase = createClient();
         const { data: dbData } = await supabase
             .from("failure_ticket")
             .select("*")
