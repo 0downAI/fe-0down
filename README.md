@@ -1,36 +1,155 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 0downai – Web Application
 
-## Getting Started
+0downai adalah aplikasi web modern berbasis **Next.js** yang dirancang sebagai **full-stack application** dengan fokus pada performa, pengalaman pengguna (UX), dan kemudahan pengembangan. Aplikasi ini terintegrasi dengan **Supabase** untuk autentikasi dan pengelolaan data.
 
-First, run the development server:
+---
+
+## 🚀 Tech Stack
+
+| Kategori       | Teknologi              | Peran                                    |
+| -------------- | ---------------------- | ---------------------------------------- |
+| Framework      | Next.js (v16)          | Routing, SSR, dan optimasi aplikasi      |
+| UI Library     | React (v19)            | Pembuatan antarmuka berbasis komponen    |
+| Language       | TypeScript             | Static typing & kualitas kode            |
+| Styling        | Tailwind CSS           | Styling utility-first                    |
+| UI Components  | Radix UI / Shadcn UI   | Komponen UI & aksesibilitas              |
+| Backend & Auth | Supabase               | Database PostgreSQL & autentikasi        |
+| Animasi        | Framer Motion          | Animasi & interaksi UI                   |
+| HTTP Client    | Axios                  | Komunikasi API                           |
+| Konten         | React Markdown + Shiki | Rendering markdown & syntax highlighting |
+
+---
+
+## 📦 Prasyarat
+
+Pastikan Anda telah menginstal:
+
+* **Node.js** (versi terbaru direkomendasikan)
+* Salah satu package manager:
+
+  * npm
+  * yarn
+  * pnpm
+  * **bun (disarankan)**
+
+---
+
+## ⚙️ Instalasi
+
+Clone repositori lalu install dependensi:
+
+```bash
+# menggunakan npm
+npm install
+
+# atau menggunakan bun
+bun install
+```
+
+---
+
+## 🔐 Konfigurasi Supabase
+
+Aplikasi ini membutuhkan Supabase sebagai backend.
+
+### Langkah Setup Supabase
+
+1. Buat akun di **Supabase**
+2. Buat proyek baru
+3. Salin **Project URL** dan **Anon Public Key**
+
+### Environment Variables
+
+Buat file `.env.local` di root proyek:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_KEY="your-anon-key"
+```
+
+### Konfigurasi Client Supabase
+
+Supabase diinisialisasi menggunakan `@supabase/ssr` agar kompatibel dengan Next.js App Router.
+
+```ts
+// lib/supabase.ts
+import { createBrowserClient } from '@supabase/ssr'
+
+export const createClient = () => {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_KEY!
+  )
+}
+```
+
+---
+
+## ▶️ Menjalankan Aplikasi
+
+Jalankan server development:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+# atau
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Aplikasi akan berjalan di:
+👉 **[http://localhost:3000](http://localhost:3000)**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🗂️ Struktur & Fitur Utama
 
-## Learn More
+```
+app/
+ ├─ page.tsx              # Landing page
+ ├─ login/page.tsx        # Halaman login
+ ├─ signup/page.tsx       # Halaman registrasi
+ ├─ dashboard/page.tsx    # Dashboard user
 
-To learn more about Next.js, take a look at the following resources:
+components/
+ ├─ dashboard/
+ │   ├─ copilot-chat.tsx  # Chatbot / Copilot berbasis markdown
+ │   ├─ alerts-section.tsx# Notifikasi & alert
+ ├─ ui/                   # Komponen UI (button, input, card, dll)
+ ├─ animations/           # Animasi (ScrollReveal, dll)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+lib/
+ ├─ axios.ts              # Axios instance untuk API
+ └─ supabase.ts           # Supabase client
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Fitur Utama
 
-## Deploy on Vercel
+* Autentikasi pengguna (login & signup)
+* Dashboard pengguna
+* Chatbot / Copilot dengan rendering Markdown
+* Notifikasi dan alert sistem
+* Animasi interaktif dengan Framer Motion
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## ☁️ Deployment
+
+Cara termudah untuk melakukan deployment adalah menggunakan **Vercel**.
+
+### Langkah Singkat
+
+1. Push proyek ke GitHub
+2. Import repository ke Vercel
+3. Atur **Environment Variables** (Supabase URL & Key)
+4. Deploy 🚀
+
+Vercel memberikan integrasi terbaik karena dibuat langsung oleh tim Next.js.
+
+---
+
+## 📌 Catatan
+
+Dokumentasi ini ditujukan agar developer lain dapat dengan mudah memahami struktur proyek dan membangun aplikasi serupa menggunakan stack modern seperti yang digunakan pada 0downai.
+
+---
+
+✨ Happy Coding!
